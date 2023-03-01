@@ -1,9 +1,12 @@
 import React from "react";
 import AuthContext from "./AuthContext";
 import { useContext } from "react";
+import { useSelector } from "react-redux";
 
 const Verify = () => {
-    const authCtx = useContext(AuthContext);
+    // const authCtx = useContext(AuthContext);
+    const token = useSelector((state) => state.auth.token);
+    console.log(token);
 
   const verifyEmail = () => {
     {
@@ -13,7 +16,7 @@ const Verify = () => {
             method: "POST",
             body: JSON.stringify({
                 requestType: "VERIFY_EMAIL",
-                idToken: authCtx.token,
+                idToken: token,
             }),
             headers: {
               "Content-Type": "application/json",

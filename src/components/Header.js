@@ -4,15 +4,24 @@ import { Navbar, Nav } from "react-bootstrap";
 import { useContext } from "react";
 import AuthContext from "./AuthContext";
 import { useHistory } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth";
+import { useSelector } from "react-redux";
+import auth from "../store/auth";
 
 const Header = () => {
-  const authCtx = useContext(AuthContext);
+  const isPremium = useSelector((state) => state.expenses.showPremium);
+  const dispatch = useDispatch();
+  // const authCtx = useContext(AuthContext);
   const history = useHistory();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  //  const isAuthenticated = localStorage.getItem("isLoggedIn");
+
   const logout = () => {
-    authCtx.logout();
+    dispatch(authActions.logout());
   };
   useEffect(() => {
-    console.log(`Login hai ki nahi  ${authCtx.isLoggedIn}`);
+    console.log(`Login hai ki nahi  ${isAuthenticated}`);
   }, []);
   return (
     <Navbar bg="light" expand="sm">
@@ -20,7 +29,7 @@ const Header = () => {
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="ml-5">
-          {!authCtx.isLoggedIn && (
+          {!isAuthenticated && (
             <>
               <Nav.Link as={NavLink} activeClassName="active" to="/login">
                 Login
@@ -30,7 +39,15 @@ const Header = () => {
               </Nav.Link>
             </>
           )}
-          {authCtx.isLoggedIn && (
+          
+
+          {isAuthenticated && (
+            <Nav.Link as={NavLink} activeClassName="active" to="/DailyExpense">
+              Daily expenses
+            </Nav.Link>
+          )}
+
+{isAuthenticated && (
             <Nav.Link
               as={NavLink}
               activeClassName="active"
@@ -41,9 +58,13 @@ const Header = () => {
             </Nav.Link>
           )}
 
-          {authCtx.isLoggedIn && (
-            <Nav.Link as={NavLink} activeClassName="active" to="/DailyExpense">
-              Daily expenses
+{isPremium && (
+            <Nav.Link
+              as={NavLink}
+              activeClassName="active"
+              to="/premium"
+            >
+              Activate Premium
             </Nav.Link>
           )}
         </Nav>

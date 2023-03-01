@@ -3,9 +3,12 @@ import { Form, Button } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { useContext } from "react";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth";
 
 const Login = () => {
-  const authCtx = useContext(AuthContext);
+  const dispatch = useDispatch();
+  // const authCtx = useContext(AuthContext);
   const history = useHistory();
   const loginIdRef = useRef(null);
   const passwordRef = useRef(null);
@@ -84,9 +87,6 @@ const Login = () => {
             // alert("Login succesful");
             console.log(res);
 
-            // Check if user profile is incomplete
-            // You can replace this with your own logic to check if the user's profile is incomplete
-          
             
             return res.json();
           } else {
@@ -102,13 +102,8 @@ const Login = () => {
         })
         .then((data) => {
           console.log(data);
-          authCtx.login(data.idToken,data.email);
+          dispatch(authActions.login({token:data.idToken, email:data.email}));
 
-          // const userProfileIncomplete = true;
-          // if (userProfileIncomplete) {
-          //   alert("Your profile is incomplete. Please update your profile.");
-          //   history.push("/complete-profile");
-          // }
 
           // history.push("/verify-email");
           history.push("/DailyExpense");

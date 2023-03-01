@@ -3,13 +3,20 @@ import { Form, Button, Table } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "./AuthContext";
 import { useContext } from "react";
+import { useSelector,useDispatch } from "react-redux";
+import { expenseActions } from "../store/expenses";
+
 
 const DailyExpense = () => {
-  const authCtx = useContext(AuthContext);
+  const dispatch = useDispatch();
+  let totalAmount = 0;
+  // console.log(totalAmount);
+  // const authCtx = useContext(AuthContext);
   const [isEdititng, setIsEditing] = useState(false);
-
-  const emailOfLoggedInUser = authCtx.userEmail;
-  const sanitizedEmail = emailOfLoggedInUser.replace(/[@.]/g, "");
+  // const [isPremium,setIsPremium] = useState(false);
+  const LoggedInEmail = useSelector((state) => state.auth.userEmail);
+  // console.log(`emailOfLoggedInUser ${LoggedInEmail}`);
+  const sanitizedEmail = LoggedInEmail.replace(/[@.]/g, "");
 
   const [expenses, setExpenses] = useState([]);
   const amountRef = useRef();
@@ -17,8 +24,8 @@ const DailyExpense = () => {
   const categoryRef = useRef();
   const [receivedExpense, setReceivedExpenses] = useState([]);
 
-  const handleEditedUpdatation = ()=>{
-    const key = localStorage.getItem('keyToEdit');
+  const handleEditedUpdatation = () => {
+    const key = localStorage.getItem("keyToEdit");
 
     const editedExpense = {
       amount: amountRef.current.value,
@@ -26,28 +33,18 @@ const DailyExpense = () => {
       category: categoryRef.current.value,
     };
     axios
-    .put(`https://expensetracker2-14ef8-default-rtdb.firebaseio.com/${sanitizedEmail}/${key}.json`, editedExpense)
-    .then((response) => {
-      console.log("Todo updated successfully:", response.data);
-      setIsEditing(false);
-    })
-    .catch((error) => {
-      console.log("Error updating todo:", error);
-    });
-  }
-  React.useEffect(() => {
-    axios
-      .get(
-        `https://expensetracker2-14ef8-default-rtdb.firebaseio.com/${sanitizedEmail}.json`
+      .put(
+        `https://expensetracker2-14ef8-default-rtdb.firebaseio.com/${sanitizedEmail}/${key}.json`,
+        editedExpense
       )
       .then((response) => {
-        if (response.data) {
-          setReceivedExpenses(response.data);
-        }
+        console.log("Todo updated successfully:", response.data);
+        setIsEditing(false);
+      })
+      .catch((error) => {
+        console.log("Error updating todo:", error);
       });
-  }, [expenses, handleEditedUpdatation]);
-
-  console.log(receivedExpense);
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -95,7 +92,7 @@ const DailyExpense = () => {
   };
 
   const handleEdit = (key) => {
-    localStorage.setItem('keyToEdit',key);
+    localStorage.setItem("keyToEdit", key);
     setIsEditing(true);
     axios
       .get(
@@ -111,10 +108,32 @@ const DailyExpense = () => {
         console.log(error);
         // setIsEditing(false);
       });
-
   };
 
+  React.useEffect(() => {
+    axios
+      .get(
+        `https://expensetracker2-14ef8-default-rtdb.firebaseio.com/${sanitizedEmail}.json`
+      )
+      .then((response) => {
+        if (response.data) {
+          setReceivedExpenses(response.data);
+          // console.log("Run")
+        }
+      });
+  }, [handleSubmit, handleDelete, handleDelete]);
 
+  {Object.keys(receivedExpense).forEach((key) => {
+    totalAmount += +receivedExpense[key].amount;
+  })}
+
+  if(totalAmount>10000){
+    dispatch(expenseActions.Premium());
+  }
+  else{
+    dispatch(expenseActions.notPremium());
+  }
+  
 
   return (
     <div>
@@ -145,19 +164,26 @@ const DailyExpense = () => {
           </Form.Control>
         </Form.Group>
         <div className="text-center">
-          {!isEdititng && (<Button variant="primary" type="submit" className="mt-3">
-            Add Expense
-          </Button>)}
+          {!isEdititng && (
+            <Button variant="primary" type="submit" className="mt-3">
+              Add Expense
+            </Button>
+          )}
 
-          {isEdititng && (<Button variant="success" onClick={handleEditedUpdatation} className="mt-3">
-            Edit Expense
-          </Button>)}
-
+          {isEdititng && (
+            <Button
+              variant="success"
+              onClick={handleEditedUpdatation}
+              className="mt-3"
+            >
+              Edit Expense
+            </Button>
+          )}
         </div>
       </Form>
 
       <div>
-        <h3 className="text-center">Expenses of {emailOfLoggedInUser}</h3>
+        <h3 className="text-center">Expenses of {LoggedInEmail}</h3>
         <Table striped bordered hover className="container">
           <thead>
             <tr>
@@ -168,16 +194,6 @@ const DailyExpense = () => {
             </tr>
           </thead>
           <tbody>
-            {/* {Object.keys(receivedExpense).map((key, index) => (
-              <tr key={key}>
-                <td>{index + 1}</td>
-                <td>{receivedExpense[key].amount}</td>
-                <td>{receivedExpense[key].description}</td>
-                <td>{receivedExpense[key].category}</td>
-                <td>{key}</td>
-              </tr>
-            ))} */}
-
             {Object.keys(receivedExpense).map((key, index) => (
               <tr key={key}>
                 <td>{index + 1}</td>
@@ -206,6 +222,8 @@ const DailyExpense = () => {
           </tbody>
         </Table>
       </div>
+
+      <h1 className="container">Total amount: {totalAmount}</h1>
     </div>
   );
 };
