@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Navbar, Nav } from "react-bootstrap";
 import { useContext } from "react";
@@ -7,19 +7,49 @@ import { useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { authActions } from "../store/auth";
 import { useSelector } from "react-redux";
-import auth from "../store/auth";
+import { expenseActions } from "../store/expenses";
+import { Button } from "react-bootstrap";
+import {saveAs} from "file-saver"
 
 const Header = () => {
   const isPremium = useSelector((state) => state.expenses.showPremium);
+  const receivedData = useSelector((state) => state.expenses.receivedData);
+  console.log(receivedData)
   const dispatch = useDispatch();
   // const authCtx = useContext(AuthContext);
   const history = useHistory();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  //  const isAuthenticated = localStorage.getItem("isLoggedIn");
 
+
+  const downloadExpenses = () => {
+    // Create a CSV string from the received data
+    const csv = "Category,Description,Amount\n" + Object.values(receivedData).map(({ category, description, amount }) => `${category},${description},${amount}`).join("\n");
+  
+    // Create a new blob with the CSV data
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  
+    // Save the blob as a file with the name "expenses.csv"
+    saveAs(blob, "expenses.csv");
+  };
+
+  const showDark =() =>{
+    
+    localStorage.setItem("twoButtons",true);
+    window.location.reload();
+
+  }
+  const isPremiumClicked = localStorage.getItem("twoButtons") === "true" ;
   const logout = () => {
     dispatch(authActions.logout());
+    localStorage.setItem("twoButtons",false);
+    localStorage.removeItem("dark hai ki nahi")
+
   };
+  const changeToDark =()=>{
+    dispatch(expenseActions.toggleDark());
+  }
+
+  console.log(useSelector(state =>state.expenses.showDark))
   useEffect(() => {
     console.log(`Login hai ki nahi  ${isAuthenticated}`);
   }, []);
@@ -58,15 +88,34 @@ const Header = () => {
             </Nav.Link>
           )}
 
-{isPremium && (
+{isAuthenticated && isPremium && !isPremiumClicked &&  (
             <Nav.Link
               as={NavLink}
               activeClassName="active"
-              to="/premium"
+              to="/DailyExpense"
+              onClick={showDark}
             >
               Activate Premium
             </Nav.Link>
           )}
+
+{isAuthenticated && isPremium && isPremiumClicked &&  (
+            <Nav.Link
+              as={NavLink}
+              activeClassName="active"
+              to="/DailyExpense"
+              onClick={changeToDark}
+            >
+              Toggle dark/light theme
+            </Nav.Link>
+          )}
+
+{isAuthenticated && isPremium && isPremiumClicked && (
+  <Button variant="primary" onClick={downloadExpenses}>
+    Download Expenses
+  </Button>
+)}
+
         </Nav>
       </Navbar.Collapse>
     </Navbar>

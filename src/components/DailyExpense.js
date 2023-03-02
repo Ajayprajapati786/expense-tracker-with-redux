@@ -39,11 +39,14 @@ const DailyExpense = () => {
       )
       .then((response) => {
         console.log("Todo updated successfully:", response.data);
+        window.location.reload();
         setIsEditing(false);
       })
       .catch((error) => {
         console.log("Error updating todo:", error);
       });
+
+      
   };
 
   const handleSubmit = (event) => {
@@ -63,6 +66,7 @@ const DailyExpense = () => {
       .then((response) => {
         console.log(response);
         setExpenses([...expenses, expense]);
+        window.location.reload();
       })
       .catch((error) => {
         console.log(error);
@@ -72,6 +76,7 @@ const DailyExpense = () => {
     amountRef.current.value = "";
     descriptionRef.current.value = "";
     categoryRef.current.value = "";
+   
   };
 
   const handleDelete = (key) => {
@@ -108,6 +113,7 @@ const DailyExpense = () => {
         console.log(error);
         // setIsEditing(false);
       });
+      
   };
 
   React.useEffect(() => {
@@ -118,10 +124,11 @@ const DailyExpense = () => {
       .then((response) => {
         if (response.data) {
           setReceivedExpenses(response.data);
-          // console.log("Run")
+          console.log(response.data)
+          dispatch(expenseActions.receivedData(response.data));
         }
       });
-  }, [handleSubmit, handleDelete, handleDelete]);
+  }, [setReceivedExpenses]);
 
   {Object.keys(receivedExpense).forEach((key) => {
     totalAmount += +receivedExpense[key].amount;
